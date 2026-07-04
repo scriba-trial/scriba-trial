@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scriba — ניסיון חינם</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #0f172a;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .wordmark {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: #fff;
+    }
+
+    .tagline {
+      font-size: 12px;
+      color: #94a3b8;
+      border-right: 1px solid #334155;
+      padding-right: 12px;
+      margin-right: 4px;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 16px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 40px 44px;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .card h1 {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #0f172a;
+    }
+
+    .card .sub {
+      font-size: 15px;
+      color: #64748b;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .error-box {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+
+    label .req { color: #dc2626; margin-right: 2px; }
+    label .opt { font-weight: 400; color: #94a3b8; font-size: 12px; }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 11px 14px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #1e293b;
+      background: #fff;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      direction: rtl;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #0f172a;
+      box-shadow: 0 0 0 3px rgba(15,23,42,0.08);
+    }
+
+    textarea { resize: vertical; line-height: 1.6; }
+
+    .hint {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 5px;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: #0f172a;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.15s;
+    }
+
+    .submit-btn:hover { background: #1e293b; }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="wordmark">SCRIBA</span>
+  <span class="tagline">תוכן שנשמע כמוך</span>
+</header>
+
+<main>
+  <div class="card">
+    <h1>קבל/י פוסט חינם — תוך 24 שעות</h1>
+    <p class="sub">
+      מלא/י את הפרטים. Scriba ישלח 3 נושאים לבחירה, ואחרי שתבחר/י — פוסט מוכן לפייסבוק וללינקדאין.
+    </p>
+
+    {% if error %}
+    <div class="error-box">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST">
+      <div class="field">
+        <label>שם מלא <span class="req">*</span></label>
+        <input type="text" name="name" value="{{ form.get('name','') }}" placeholder="רחל לוי" required>
+      </div>
+
+      <div class="field">
+        <label>מייל <span class="req">*</span></label>
+        <input type="email" name="email" value="{{ form.get('email','') }}" placeholder="rachel@example.com" required>
+      </div>
+
+      <div class="field">
+        <label>במה עוסק/ת? <span class="req">*</span></label>
+        <input type="text" name="field" value="{{ form.get('field','') }}" placeholder="עו"ד, יועצת ארגונית, מאמן עסקי..." required>
+      </div>
+
+      <div class="field">
+        <label>מי הלקוחות שלך? <span class="req">*</span></label>
+        <textarea name="target_client" rows="2" placeholder="לדוגמה: מנהלות משאבי אנוש בחברות בינוניות שמנהלות שינויים ארגוניים" required>{{ form.get('target_client','') }}</textarea>
+        <p class="hint">ספציפי יותר = פוסט מדויק יותר. "בעלי עסקים" לא עוזר לנו.</p>
+      </div>
+
+      <div class="field">
+        <label>מה הכאב הכי גדול שלהם? <span class="req">*</span></label>
+        <textarea name="pain_point" rows="2" placeholder="לדוגמה: לא יודעות איך לגרום לעובדים לקבל שינוי בלי התנגדות פנימית" required>{{ form.get('pain_point','') }}</textarea>
+        <p class="hint">Scriba ישתמש בזה כדי ליצור תוכן שמדבר ישירות לקהל שלך.</p>
+      </div>
+
+      <div class="field">
+        <label>משהו על הקול שלך <span class="opt">(לא חובה)</span></label>
+        <textarea name="voice_signal" rows="2" placeholder="לדוגמה: אני ישיר/ה, לא אוהב/ת עצות גנריות, מאמינה שפשוט > מורכב">{{ form.get('voice_signal','') }}</textarea>
+      </div>
+
+      <button type="submit" class="submit-btn">שלח/י — אני רוצה לראות את הפוסט</button>
+    </form>
+  </div>
+</main>
+
+<footer>Scriba &nbsp;|&nbsp; scriba.biz</footer>
+
+</body>
+</html>

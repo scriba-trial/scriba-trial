@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scriba — קיבלנו!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #0f172a;
+      padding: 20px 32px;
+    }
+    .wordmark {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: #fff;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 16px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 48px 44px;
+      width: 100%;
+      max-width: 520px;
+      text-align: center;
+    }
+    .check {
+      width: 56px;
+      height: 56px;
+      background: #0f172a;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+    }
+    .check svg { width: 28px; height: 28px; stroke: #fff; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 12px; color: #0f172a; }
+    .sub { font-size: 15px; color: #64748b; line-height: 1.7; margin-bottom: 28px; }
+    .steps {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 20px 24px;
+      text-align: right;
+    }
+    .step {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+    .step:last-child { margin-bottom: 0; }
+    .step-num {
+      width: 24px;
+      height: 24px;
+      background: #0f172a;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step-text { font-size: 14px; line-height: 1.6; color: #374151; }
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="wordmark">SCRIBA</span>
+</header>
+
+<main>
+  <div class="card">
+    <div class="check">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h1>{{ name }}, קיבלנו!</h1>
+    <p class="sub">
+      Scriba ניתח את הפרופיל שלך ועומד לשלוח לך 3 נושאים לבחירה.
+      תוך מספר דקות תקבל/י מייל.
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Scriba שולח 3 נושאים שמתאימים לתחום ולקהל שלך</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">ענה/י למייל עם מספר הנושא שבחרת (לדוגמה: "2")</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">הפוסט המוכן מגיע אליך — מוכן לפרסום בפייסבוק ובלינקדאין</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>Scriba &nbsp;|&nbsp; scriba.biz</footer>
+
+</body>
+</html>
