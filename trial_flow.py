@@ -181,3 +181,34 @@ def check_replies_and_generate():
 
     mail.logout()
     print(f"[flow] done. processed: {len(processed)}")
+
+
+def process_single_trial(trial_id: str):
+    """Manually trigger topic suggestions for one trial (admin action)."""
+    from generate import suggest_topics
+    from email_utils import send_topics_email
+
+    row = supabase.table("trials").select("*").eq("id", trial_id).single().execute()
+    trial = row.data
+    if not trial:
+        print(f"[flow] trial {trial_id} not found")
+        return
+
+    topics_text = suggest_topics(trial)
+    send_topics_email(trial, topics_text)
+
+    topics_dict = {}
+    for line in topics_text.split("\n"):
+        line = line.strip()
+        for i in range(1, 4):
+            if line.startswith(f"{i}.") or line.startswith(f"{i} "):
+                topic_name = line[2:].strip().split(":")[0].strip()
+                topics_dict[str(i)] = topic_name
+                break
+
+    supabase.table("trials").update({
+        "status": "topics_sent",
+        "topics_json": topics_dict,
+    }).eq("id", trial_id).execute()
+
+    print(f"[flow] manual topics sent to {trial['email']}")

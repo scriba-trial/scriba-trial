@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scriba Admin — Trials</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Space Grotesk', sans-serif; background: #f1f5f9; color: #1e293b; min-height: 100vh; }
+    header {
+      background: #0f172a;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .wordmark { font-size: 18px; font-weight: 700; letter-spacing: 3px; color: #fff; }
+    .header-right { display: flex; align-items: center; gap: 20px; }
+    .badge { background: #0057FF; color: #fff; font-size: 11px; font-weight: 700;
+             padding: 4px 10px; border-radius: 20px; letter-spacing: 1px; }
+    a.logout { color: #94a3b8; font-size: 13px; text-decoration: none; }
+    a.logout:hover { color: #fff; }
+
+    main { max-width: 1100px; margin: 32px auto; padding: 0 24px; }
+
+    .stats { display: flex; gap: 16px; margin-bottom: 28px; }
+    .stat-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 18px 24px;
+      flex: 1;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    }
+    .stat-card .num { font-size: 28px; font-weight: 700; color: #0f172a; }
+    .stat-card .lbl { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+
+    .section-title { font-size: 15px; font-weight: 600; color: #64748b; margin-bottom: 12px; }
+
+    table { width: 100%; border-collapse: collapse; background: #fff;
+            border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.06); overflow: hidden; }
+    thead tr { background: #f8fafc; }
+    th { padding: 12px 16px; font-size: 12px; font-weight: 600; color: #64748b;
+         text-align: right; border-bottom: 1px solid #e2e8f0; }
+    td { padding: 13px 16px; font-size: 14px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8fafc; }
+
+    .status {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.3px;
+    }
+    .status-new      { background: #f1f5f9; color: #64748b; }
+    .status-topics_sent { background: #eff6ff; color: #2563eb; }
+    .status-completed   { background: #f0fdf4; color: #16a34a; }
+    .status-skipped     { background: #fff7ed; color: #ea580c; }
+
+    a.view-link { color: #0057FF; text-decoration: none; font-weight: 600; font-size: 13px; }
+    a.view-link:hover { text-decoration: underline; }
+
+    .empty { text-align: center; padding: 60px; color: #94a3b8; font-size: 15px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="wordmark">SCRIBA</span>
+  <div class="header-right">
+    <span class="badge">ADMIN</span>
+    <a href="/admin/logout" class="logout">יציאה</a>
+  </div>
+</header>
+
+<main>
+
+  {% set total = trials|length %}
+  {% set completed = trials|selectattr("status", "equalto", "completed")|list|length %}
+  {% set topics_sent = trials|selectattr("status", "equalto", "topics_sent")|list|length %}
+  {% set new_count = trials|selectattr("status", "equalto", "new")|list|length %}
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="num">{{ total }}</div>
+      <div class="lbl">סה"כ הרשמות</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">{{ new_count }}</div>
+      <div class="lbl">חדשים (ממתינים)</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">{{ topics_sent }}</div>
+      <div class="lbl">ממתינים לבחירת נושא</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">{{ completed }}</div>
+      <div class="lbl">פוסטים נשלחו</div>
+    </div>
+  </div>
+
+  <div class="section-title">כל ההרשמות</div>
+
+  {% if trials %}
+  <table>
+    <thead>
+      <tr>
+        <th>שם</th>
+        <th>מייל</th>
+        <th>תחום</th>
+        <th>סטטוס</th>
+        <th>נרשם</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in trials %}
+      <tr>
+        <td>{{ t.name }}</td>
+        <td style="direction:ltr; text-align:left; color:#64748b; font-size:13px;">{{ t.email }}</td>
+        <td>{{ t.field }}</td>
+        <td>
+          <span class="status status-{{ t.status }}">{{ t.status }}</span>
+        </td>
+        <td style="color:#94a3b8; font-size:12px;">
+          {{ t.created_at[:10] if t.created_at else '' }}
+        </td>
+        <td>
+          <a href="/admin/trial/{{ t.id }}" class="view-link">פרטים ←</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">אין הרשמות עדיין.</div>
+  {% endif %}
+
+</main>
+
+</body>
+</html>

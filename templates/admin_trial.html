@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scriba Admin — {{ trial.name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Space Grotesk', sans-serif; background: #f1f5f9; color: #1e293b; min-height: 100vh; }
+    header {
+      background: #0f172a;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .wordmark { font-size: 18px; font-weight: 700; letter-spacing: 3px; color: #fff; }
+    .header-right { display: flex; align-items: center; gap: 20px; }
+    .badge { background: #0057FF; color: #fff; font-size: 11px; font-weight: 700;
+             padding: 4px 10px; border-radius: 20px; letter-spacing: 1px; }
+    a.logout { color: #94a3b8; font-size: 13px; text-decoration: none; }
+    a.logout:hover { color: #fff; }
+
+    main { max-width: 900px; margin: 32px auto; padding: 0 24px; }
+
+    .back { display: inline-block; color: #64748b; font-size: 13px; text-decoration: none;
+            margin-bottom: 20px; }
+    .back:hover { color: #0057FF; }
+
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+            padding: 28px 32px; margin-bottom: 24px; }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .card-title { font-size: 16px; font-weight: 700; color: #0f172a; }
+
+    .status {
+      display: inline-block; font-size: 11px; font-weight: 600;
+      padding: 3px 10px; border-radius: 20px;
+    }
+    .status-new         { background: #f1f5f9; color: #64748b; }
+    .status-topics_sent { background: #eff6ff; color: #2563eb; }
+    .status-completed   { background: #f0fdf4; color: #16a34a; }
+    .status-skipped     { background: #fff7ed; color: #ea580c; }
+
+    .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .field-group label { font-size: 11px; font-weight: 600; color: #94a3b8;
+                         text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
+    .field-group .val { font-size: 14px; color: #1e293b; line-height: 1.5; }
+    .field-group.full { grid-column: 1 / -1; }
+
+    .topics-list { list-style: none; }
+    .topics-list li { padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+    .topics-list li:last-child { border-bottom: none; }
+    .topic-num { display: inline-block; width: 22px; height: 22px; background: #eff6ff;
+                 color: #2563eb; border-radius: 50%; text-align: center; line-height: 22px;
+                 font-size: 12px; font-weight: 700; margin-left: 8px; }
+
+    .post-block { margin-bottom: 20px; }
+    .post-label { font-size: 11px; font-weight: 600; color: #94a3b8;
+                  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .post-text {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.75;
+      white-space: pre-wrap;
+      direction: rtl;
+    }
+
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .btn {
+      display: inline-block; padding: 10px 20px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer;
+      border: none; text-decoration: none;
+    }
+    .btn-blue { background: #0057FF; color: #fff; }
+    .btn-blue:hover { background: #0046cc; }
+    .btn-red { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .btn-red:hover { background: #fee2e2; }
+
+    .empty-posts { color: #94a3b8; font-size: 14px; padding: 12px 0; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="wordmark">SCRIBA</span>
+  <div class="header-right">
+    <span class="badge">ADMIN</span>
+    <a href="/admin/logout" class="logout">יציאה</a>
+  </div>
+</header>
+
+<main>
+
+  <a href="/admin" class="back">← חזרה לרשימה</a>
+
+  <!-- Profile card -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">{{ trial.name }}</span>
+      <span class="status status-{{ trial.status }}">{{ trial.status }}</span>
+    </div>
+
+    <div class="fields">
+      <div class="field-group">
+        <label>מייל</label>
+        <div class="val" style="direction:ltr; text-align:left;">{{ trial.email }}</div>
+      </div>
+      <div class="field-group">
+        <label>תחום</label>
+        <div class="val">{{ trial.field }}</div>
+      </div>
+      <div class="field-group full">
+        <label>קהל יעד</label>
+        <div class="val">{{ trial.target_client }}</div>
+      </div>
+      <div class="field-group full">
+        <label>כאב מרכזי</label>
+        <div class="val">{{ trial.pain_point }}</div>
+      </div>
+      {% if trial.voice_signal %}
+      <div class="field-group full">
+        <label>קול</label>
+        <div class="val">{{ trial.voice_signal }}</div>
+      </div>
+      {% endif %}
+      <div class="field-group">
+        <label>נרשם</label>
+        <div class="val" style="color:#94a3b8; font-size:13px;">
+          {{ trial.created_at[:16].replace("T", " ") if trial.created_at else '' }}
+        </div>
+      </div>
+      {% if trial.chosen_topic %}
+      <div class="field-group">
+        <label>נושא שנבחר</label>
+        <div class="val">{{ trial.chosen_topic }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Topics card -->
+  {% if trial.topics_json %}
+  <div class="card">
+    <div class="card-title" style="margin-bottom:16px;">נושאים שהוצעו</div>
+    <ul class="topics-list">
+      {% for num, topic in trial.topics_json.items() %}
+      <li>
+        <span class="topic-num">{{ num }}</span>
+        {{ topic }}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <!-- Posts card -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:16px;">פוסטים שנוצרו</div>
+    {% if posts %}
+      {% for post in posts %}
+      <div class="post-block">
+        <div class="post-label">פייסבוק — {{ post.topic }}</div>
+        <div class="post-text">{{ post.facebook_text }}</div>
+      </div>
+      <div class="post-block">
+        <div class="post-label">לינקדאין — {{ post.topic }}</div>
+        <div class="post-text">{{ post.linkedin_text }}</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-posts">אין פוסטים עדיין.</div>
+    {% endif %}
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    {% if trial.status == 'new' %}
+    <form method="POST" action="/admin/send-topics/{{ trial.id }}">
+      <button type="submit" class="btn btn-blue">שלח נושאים עכשיו</button>
+    </form>
+    {% endif %}
+
+    <form method="POST" action="/admin/delete/{{ trial.id }}"
+          onsubmit="return confirm('למחוק את {{ trial.name }}? פעולה זו בלתי הפיכה.')">
+      <button type="submit" class="btn btn-red">מחק הרשמה</button>
+    </form>
+  </div>
+
+</main>
+
+</body>
+</html>

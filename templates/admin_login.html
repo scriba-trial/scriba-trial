@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scriba Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 40px 44px;
+      width: 360px;
+    }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 24px; color: #0f172a; }
+    label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    input {
+      width: 100%; border: 1px solid #cbd5e1; border-radius: 8px;
+      padding: 11px 14px; font-size: 15px; font-family: inherit;
+      direction: ltr; text-align: left;
+    }
+    input:focus { outline: none; border-color: #0057FF; box-shadow: 0 0 0 3px rgba(0,87,255,0.1); }
+    .error { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626;
+             border-radius: 8px; padding: 10px 14px; font-size: 14px; margin-bottom: 18px; }
+    button {
+      width: 100%; margin-top: 18px; background: #0057FF; color: #fff;
+      border: none; border-radius: 8px; padding: 13px; font-size: 15px;
+      font-weight: 600; font-family: inherit; cursor: pointer;
+    }
+    button:hover { background: #0046cc; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>SCRIBA Admin</h1>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <form method="POST">
+    <label>סיסמה</label>
+    <input type="password" name="password" autofocus>
+    <button type="submit">כניסה</button>
+  </form>
+</div>
+</body>
+</html>
