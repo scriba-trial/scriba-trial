@@ -19,7 +19,7 @@
     }
 
     header {
-      background: #0f172a;
+      background: #0057FF;
       padding: 20px 32px;
       display: flex;
       align-items: center;
@@ -126,7 +126,7 @@
 
     .submit-btn {
       width: 100%;
-      background: #0f172a;
+      background: #0057FF;
       color: #fff;
       border: none;
       border-radius: 8px;
@@ -139,7 +139,7 @@
       transition: background 0.15s;
     }
 
-    .submit-btn:hover { background: #1e293b; }
+    .submit-btn:hover { background: #0046cc; }
 
     footer {
       text-align: center;
@@ -158,7 +158,7 @@
 
 <main>
   <div class="card">
-    <h1>קבל/י פוסט חינם — תוך 24 שעות</h1>
+    <h1>קבלו פוסטים מוכנים לפרסום</h1>
     <p class="sub">
       מלא/י את הפרטים. Scriba ישלח 3 נושאים לבחירה, ואחרי שתבחר/י — פוסט מוכן לפייסבוק וללינקדאין.
     </p>
@@ -170,7 +170,7 @@
     <form method="POST">
       <div class="field">
         <label>שם מלא <span class="req">*</span></label>
-        <input type="text" name="name" value="{{ form.get('name','') }}" placeholder="רחל לוי" required>
+        <input type="text" name="name" value="{{ form.get('name','') }}" placeholder="ישראל ישראלי" required>
       </div>
 
       <div class="field">
@@ -180,7 +180,7 @@
 
       <div class="field">
         <label>במה עוסק/ת? <span class="req">*</span></label>
-        <input type="text" name="field" value="{{ form.get('field','') }}" placeholder="עו"ד, יועצת ארגונית, מאמן עסקי..." required>
+        <input type="text" name="field" value="{{ form.get('field','') }}" placeholder="מקצוע או נישה עסקית" required>
       </div>
 
       <div class="field">
@@ -200,7 +200,7 @@
         <textarea name="voice_signal" rows="2" placeholder="לדוגמה: אני ישיר/ה, לא אוהב/ת עצות גנריות, מאמינה שפשוט > מורכב">{{ form.get('voice_signal','') }}</textarea>
       </div>
 
-      <button type="submit" class="submit-btn">שלח/י — אני רוצה לראות את הפוסט</button>
+      <button type="submit" class="submit-btn">שלח</button>
     </form>
   </div>
 </main>
