@@ -48,7 +48,7 @@ def index():
                                error="המייל הזה כבר רשום. בדוק/י את תיבת הדואר שלך.",
                                form=form_data)
 
-    supabase.table("trials").insert({
+    result = supabase.table("trials").insert({
         "name": name,
         "email": email,
         "field": field,
@@ -57,6 +57,17 @@ def index():
         "voice_signal": voice_signal,
         "status": "new",
     }).execute()
+
+    trial_id = result.data[0]["id"] if result.data else None
+
+    if trial_id:
+        def send_topics():
+            try:
+                from trial_flow import process_single_trial
+                process_single_trial(trial_id)
+            except Exception as e:
+                print(f"[signup] send topics error: {e}")
+        threading.Thread(target=send_topics, daemon=True).start()
 
     return render_template("success.html", name=name)
 
