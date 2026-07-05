@@ -144,7 +144,26 @@ def check_replies_and_generate():
         print(f"[flow] reply from {sender}: {repr(reply)}")
 
         if not reply or "דלג" in reply or "skip" in reply.lower():
-            supabase.table("trials").update({"status": "skipped"}).eq("email", sender).execute()
+            # Generate fresh topics and resend instead of skipping
+            try:
+                from generate import suggest_topics
+                from email_utils import send_topics_email
+                trial = pending_by_email[sender]
+                new_topics_text = suggest_topics(trial)
+                send_topics_email(trial, new_topics_text)
+                new_topics_dict = {}
+                for line in new_topics_text.split("\n"):
+                    line = line.strip()
+                    for i in range(1, 4):
+                        if line.startswith(f"{i}.") or line.startswith(f"{i} "):
+                            new_topics_dict[str(i)] = line[2:].strip().split(":")[0].strip()
+                            break
+                supabase.table("trials").update({
+                    "topics_json": new_topics_dict,
+                }).eq("email", sender).execute()
+                print(f"[flow] resent fresh topics to {sender} after skip")
+            except Exception as e:
+                print(f"[flow] resend topics error for {sender}: {e}")
             processed.add(sender)
             continue
 

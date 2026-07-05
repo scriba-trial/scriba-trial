@@ -45,7 +45,7 @@ def send_topics_email(trial: dict, topics: str):
 
     <p style="font-size:15px;font-weight:600;margin:0 0 12px;">מה לעשות?</p>
     <p style="font-size:15px;line-height:1.8;margin:0 0 6px;">
-      <strong>ענה/י למייל הזה</strong> עם המספר של הנושא שבחרת (לדוגמה: "2").<br>
+      <strong>ענה/י למייל הזה</strong> עם המספר של הנושא שבחרת (לדוגמה: 2).<br>
       או כתוב/י נושא משלך ואנחנו ניצור פוסט לפיו.
     </p>
     <p style="font-size:14px;color:#64748b;margin:0;">
