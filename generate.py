@@ -99,11 +99,16 @@ def build_system_prompt(trial: dict) -> str:
 
 שיווק צריך להרגיש חכם ולא זול.
 
-=== פלט סופי ===
+לאחר סבב התיקון, כתוב בדיוק בפורמט הזה ואל תסטה ממנו:
+===פוסט===
+[הפוסט הסופי המתוקן בלבד]
+===סוף===""
 
-הגש את הפוסט הסופי בלבד.
-אסור לכלול כותרות תפקיד, ביקורת, הערות תיקון, או כל הסבר.
-הקורא יראה רק את הפוסט — שום דבר מתהליך הכתיבה."""
+
+def _extract_final(text: str) -> str:
+    if "===פוסט===" in text and "===סוף===" in text:
+        return text.split("===פוסט===")[1].split("===סוף===")[0].strip()
+    return text.strip()
 
 
 def generate_post_for_trial(trial: dict, topic: str) -> dict:
@@ -171,9 +176,9 @@ def generate_post_for_trial(trial: dict, topic: str) -> dict:
 
     return {
         "topic": topic,
-        "facebook_text": fb.content[0].text,
-        "linkedin_text": li.content[0].text,
-        "blog_text": blog.content[0].text,
+        "facebook_text": _extract_final(fb.content[0].text),
+        "linkedin_text": _extract_final(li.content[0].text),
+        "blog_text": _extract_final(blog.content[0].text),
         "reel_script": reel.content[0].text,
     }
 
