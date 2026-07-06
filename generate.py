@@ -130,10 +130,24 @@ def generate_post_for_trial(trial: dict, topic: str) -> dict:
 הוסף 3-4 hashtags רלוונטיים בסוף."""}]
     )
 
+    blog = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=2000,
+        system=system,
+        messages=[{"role": "user", "content": f"""כתוב מאמר בלוג עבור {name} על הנושא: {topic}
+
+הבלוג מיועד לאתר האישי שלו/ה. הקוראים הם אותו קהל יעד כמו בפוסטים.
+אורך: 600-900 מילה. מעמיק יותר מפוסט רשתות חברתיות.
+מבנה: כותרת ראשית, פסקת פתיחה חזקה, 3-4 פסקאות עם עומק, סיום עם קריאה לפעולה.
+הסגנון — אותו קול בדיוק כמו הפוסטים, רק יותר מקום לפתח.
+אל תוסיף hashtags. אל תוסיף כותרות עם ## או **."""}]
+    )
+
     return {
         "topic": topic,
         "facebook_text": fb.content[0].text,
         "linkedin_text": li.content[0].text,
+        "blog_text": blog.content[0].text,
     }
 
 

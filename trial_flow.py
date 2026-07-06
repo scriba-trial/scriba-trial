@@ -185,6 +185,7 @@ def check_replies_and_generate():
                 "topic": topic,
                 "facebook_text": post["facebook_text"],
                 "linkedin_text": post["linkedin_text"],
+                "blog_text": post.get("blog_text", ""),
             }).execute()
 
             supabase.table("trials").update({
