@@ -143,11 +143,38 @@ def generate_post_for_trial(trial: dict, topic: str) -> dict:
 אל תוסיף hashtags. אל תוסיף כותרות עם ## או **."""}]
     )
 
+    reel = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=800,
+        system=system,
+        messages=[{"role": "user", "content": f"""כתוב תסריט לריל אינסטגרם עבור {name} על הנושא: {topic}
+
+הריל מדובר — {name} מדבר/ת ישירות למצלמה. אין עריכה מורכבת.
+אורך: 45-60 שניות דיבור (כ-120-150 מילה).
+מבנה:
+- שניות 0-5: פתיחה שמעצירה גלילה — משפט אחד חד ומפתיע.
+- שניות 5-40: הגוף — רעיון אחד, דוגמה אחת, הסבר קצר.
+- שניות 40-60: סיום — קריאה לפעולה או שאלה שגורמת לתגובה.
+
+פורמט הפלט:
+[0-5 שניות]
+הטקסט לדיבור
+
+[5-40 שניות]
+הטקסט לדיבור
+
+[40-60 שניות]
+הטקסט לדיבור
+
+ללא כוכביות **, ללא ##, ללא הסברים מחוץ לתסריט."""}]
+    )
+
     return {
         "topic": topic,
         "facebook_text": fb.content[0].text,
         "linkedin_text": li.content[0].text,
         "blog_text": blog.content[0].text,
+        "reel_script": reel.content[0].text,
     }
 
 

@@ -73,6 +73,7 @@ def send_post_email(trial: dict, post: dict):
     fb = post["facebook_text"].replace("\n", "<br>")
     li = post["linkedin_text"].replace("\n", "<br>")
     blog = post.get("blog_text", "").replace("\n", "<br>")
+    reel = post.get("reel_script", "").replace("\n", "<br>")
 
     html = f"""
 <div dir="rtl" style="font-family:'Segoe UI',Arial,sans-serif;max-width:620px;margin:auto;color:#1a1a2e;">
@@ -101,6 +102,18 @@ def send_post_email(trial: dict, post: dict):
     <div style="border-right:4px solid #16a34a;padding:16px 20px;background:#f0fdf4;border-radius:0 8px 8px 0;margin-bottom:28px;">
       <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#16a34a;letter-spacing:1px;">BLOG</p>
       <p style="margin:0;font-size:15px;line-height:1.8;color:#1e293b;">{blog}</p>
+    </div>
+
+    <div style="border-right:4px solid #e1306c;padding:16px 20px;background:#fff0f5;border-radius:0 8px 8px 0;margin-bottom:28px;">
+      <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#e1306c;letter-spacing:1px;">INSTAGRAM</p>
+      <p style="margin:0;font-size:15px;line-height:1.8;color:#475569;font-style:italic;">
+        בגרסה המלאה כאן תצורף תמונה מותאמת + טקסט שתעלה לאינסטגרם שלך.
+      </p>
+    </div>
+
+    <div style="border-right:4px solid #7c3aed;padding:16px 20px;background:#f5f3ff;border-radius:0 8px 8px 0;margin-bottom:28px;">
+      <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#7c3aed;letter-spacing:1px;">תסריט לריל</p>
+      <p style="margin:0;font-size:15px;line-height:1.8;color:#1e293b;">{reel}</p>
     </div>
 
     <div style="background:#f8fafc;border-radius:8px;padding:18px 20px;border:1px solid #e2e8f0;">
