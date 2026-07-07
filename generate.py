@@ -89,10 +89,17 @@ def build_system_prompt(trial: dict) -> str:
 הפלט שלך: הפוסט הסופי המתוקן בלבד. ללא כותרות, ללא ביקורת, ללא הסברים."""
 
 
-def _extract_final(text: str) -> str:
-    if "===פוסט===" in text and "===סוף===" in text:
-        return text.split("===פוסט===")[1].split("===סוף===")[0].strip()
-    return text.strip()
+def _clean_post(raw: str) -> str:
+    resp = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=1200,
+        messages=[{"role": "user", "content": f"""הטקסט הבא מכיל תהליך כתיבה פנימי עם תפקידים, ביקורת ותיקונים.
+הוצא ממנו את הפוסט הסופי בלבד.
+החזר אך ורק את טקסט הפוסט — ללא כותרות תפקיד, ללא ביקורת, ללא הסברים, ללא כוכביות.
+
+{raw}"""}]
+    )
+    return resp.content[0].text.strip()
 
 
 def generate_post_for_trial(trial: dict, topic: str) -> dict:
@@ -160,9 +167,9 @@ def generate_post_for_trial(trial: dict, topic: str) -> dict:
 
     return {
         "topic": topic,
-        "facebook_text": _extract_final(fb.content[0].text),
-        "linkedin_text": _extract_final(li.content[0].text),
-        "blog_text": _extract_final(blog.content[0].text),
+        "facebook_text": _clean_post(fb.content[0].text),
+        "linkedin_text": _clean_post(li.content[0].text),
+        "blog_text": _clean_post(blog.content[0].text),
         "reel_script": reel.content[0].text,
     }
 
