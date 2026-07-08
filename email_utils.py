@@ -135,3 +135,125 @@ def send_post_email(trial: dict, post: dict):
 """
     _send(to, subject, html)
     print(f"[email] post sent to {to}")
+
+
+# ── Follow-up emails ──────────────────────────────────────────────────────────
+
+def send_followup_email(trial: dict, key: str):
+    """Dispatch the correct follow-up email based on sequence key."""
+    dispatchers = {
+        "ts_f1": _ts_followup_1,
+        "ts_f2": _ts_followup_2,
+        "ts_f3": _ts_followup_3,
+        "ts_f4": _ts_followup_4,
+        "ts_f5": _ts_followup_5,
+        "cp_f1": _cp_followup_1,
+        "cp_f2": _cp_followup_2,
+        "cp_f3": _cp_followup_3,
+        "cp_f4": _cp_followup_4,
+    }
+    fn = dispatchers.get(key)
+    if fn:
+        fn(trial)
+        print(f"[email] followup {key} sent to {trial['email']}")
+    else:
+        print(f"[email] unknown followup key: {key}")
+
+
+def _followup_html(name: str, body: str) -> str:
+    return f"""
+<div dir="rtl" style="font-family:'Segoe UI',Arial,sans-serif;max-width:620px;margin:auto;color:#1a1a2e;">
+  <div style="background:#0f172a;padding:28px 32px 20px;border-radius:12px 12px 0 0;">
+    <p style="margin:0;font-size:22px;font-weight:700;letter-spacing:2px;color:#fff;">SCRIBA</p>
+    <p style="margin:4px 0 0;font-size:13px;color:#94a3b8;">תוכן שנשמע כמוך</p>
+  </div>
+  <div style="background:#fff;padding:28px 32px;border:1px solid #e2e8f0;border-top:none;">
+    <p style="font-size:17px;font-weight:600;margin:0 0 16px;">היי {name},</p>
+    {body}
+  </div>
+  <div style="background:#f1f5f9;padding:14px 32px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0;border-top:none;">
+    <p style="margin:0;font-size:12px;color:#94a3b8;text-align:center;">
+      Scriba &nbsp;|&nbsp; scriba.biz &nbsp;|&nbsp; powered by AI, crafted for humans
+    </p>
+  </div>
+</div>"""
+
+
+# ── Non-responders (topics_sent) ──────────────────────────────────────────────
+# Sequence: ts_f1 (+2h) → ts_f2 (next day 09:00) → ts_f3 (same day 13:00)
+#           → ts_f4 (+3 days 11:00) → ts_f5 (same day 20:00)
+
+def _ts_followup_1(trial: dict):
+    # TODO: write your text (+2h after topics email)
+    name = trial["name"]
+    subject = "TODO: subject ts_f1"
+    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body ts_f1</p>"""
+    _send(trial["email"], subject, _followup_html(name, body))
+
+
+def _ts_followup_2(trial: dict):
+    # TODO: write your text (next day 09:00)
+    name = trial["name"]
+    subject = "TODO: subject ts_f2"
+    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body ts_f2</p>"""
+    _send(trial["email"], subject, _followup_html(name, body))
+
+
+def _ts_followup_3(trial: dict):
+    # TODO: write your text (same day 13:00)
+    name = trial["name"]
+    subject = "TODO: subject ts_f3"
+    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body ts_f3</p>"""
+    _send(trial["email"], subject, _followup_html(name, body))
+
+
+def _ts_followup_4(trial: dict):
+    # TODO: write your text (+3 days 11:00)
+    name = trial["name"]
+    subject = "TODO: subject ts_f4"
+    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body ts_f4</p>"""
+    _send(trial["email"], subject, _followup_html(name, body))
+
+
+def _ts_followup_5(trial: dict):
+    # TODO: write your text (same day 20:00 — final)
+    name = trial["name"]
+    subject = "TODO: subject ts_f5"
+    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body ts_f5</p>"""
+    _send(trial["email"], subject, _followup_html(name, body))
+
+
+# ── Completed (got post, not purchased) ───────────────────────────────────────
+# Sequence: cp_f1 (+2h) → cp_f2 (next day 08:00) → cp_f3 (day after 13:00)
+#           → cp_f4 (+3 days 08:00)
+
+def _cp_followup_1(trial: dict):
+    # TODO: write your text (+2h after post email)
+    name = trial["name"]
+    subject = "TODO: subject cp_f1"
+    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body cp_f1</p>"""
+    _send(trial["email"], subject, _followup_html(name, body))
+
+
+def _cp_followup_2(trial: dict):
+    # TODO: write your text (next day 08:00)
+    name = trial["name"]
+    subject = "TODO: subject cp_f2"
+    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body cp_f2</p>"""
+    _send(trial["email"], subject, _followup_html(name, body))
+
+
+def _cp_followup_3(trial: dict):
+    # TODO: write your text (day after cp_f2, 13:00)
+    name = trial["name"]
+    subject = "TODO: subject cp_f3"
+    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body cp_f3</p>"""
+    _send(trial["email"], subject, _followup_html(name, body))
+
+
+def _cp_followup_4(trial: dict):
+    # TODO: write your text (+3 days from cp_f3, 08:00 — final)
+    name = trial["name"]
+    subject = "TODO: subject cp_f4"
+    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body cp_f4</p>"""
+    _send(trial["email"], subject, _followup_html(name, body))

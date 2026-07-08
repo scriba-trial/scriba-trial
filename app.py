@@ -104,6 +104,22 @@ def cron_check_replies():
     return jsonify({"status": "started"})
 
 
+@app.route("/cron/send-followups", methods=["POST"])
+def cron_send_followups():
+    if request.headers.get("X-Cron-Key", "") != CRON_KEY:
+        return jsonify({"error": "unauthorized"}), 401
+
+    def run():
+        try:
+            from followup_flow import send_followups
+            send_followups()
+        except Exception as e:
+            print(f"[cron/send-followups] error: {e}")
+
+    threading.Thread(target=run, daemon=True).start()
+    return jsonify({"status": "started"})
+
+
 # ── Admin ──────────────────────────────────────────────────────────────────────
 
 @app.route("/admin/login", methods=["GET", "POST"])
@@ -149,6 +165,13 @@ def admin_send_topics(trial_id):
             print(f"[admin/send-topics] error: {e}")
 
     threading.Thread(target=run, daemon=True).start()
+    return redirect(url_for("admin_trial", trial_id=trial_id))
+
+
+@app.route("/admin/purchased/<trial_id>", methods=["POST"])
+@admin_required
+def admin_mark_purchased(trial_id):
+    supabase.table("trials").update({"purchased": True}).eq("id", trial_id).execute()
     return redirect(url_for("admin_trial", trial_id=trial_id))
 
 

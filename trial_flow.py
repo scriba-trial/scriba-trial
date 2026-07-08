@@ -9,7 +9,7 @@ import os
 import imaplib
 import email as email_lib
 from email.header import decode_header
-from datetime import datetime
+from datetime import datetime, timezone
 from supabase import create_client
 from dotenv import load_dotenv
 
@@ -86,6 +86,7 @@ def process_new_trials():
             supabase.table("trials").update({
                 "status": "topics_sent",
                 "topics_json": topics_dict,
+                "topics_sent_at": datetime.now(timezone.utc).isoformat(),
             }).eq("id", trial["id"]).execute()
 
             print(f"[flow] topics sent to {trial['email']}")
@@ -192,6 +193,7 @@ def check_replies_and_generate():
             supabase.table("trials").update({
                 "status": "completed",
                 "chosen_topic": topic,
+                "post_sent_at": datetime.now(timezone.utc).isoformat(),
             }).eq("id", trial["id"]).execute()
 
             print(f"[flow] post generated and sent to {sender}")
@@ -230,6 +232,7 @@ def process_single_trial(trial_id: str):
     supabase.table("trials").update({
         "status": "topics_sent",
         "topics_json": topics_dict,
+        "topics_sent_at": datetime.now(timezone.utc).isoformat(),
     }).eq("id", trial_id).execute()
 
     print(f"[flow] manual topics sent to {trial['email']}")

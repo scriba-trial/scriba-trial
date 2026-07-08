@@ -87,6 +87,15 @@
     .btn-blue:hover { background: #0046cc; }
     .btn-red { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
     .btn-red:hover { background: #fee2e2; }
+    .btn-green { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .btn-green:hover { background: #dcfce7; }
+    .purchased-badge { background: #f0fdf4; color: #16a34a; font-size: 12px; font-weight: 700;
+                       padding: 4px 12px; border-radius: 20px; border: 1px solid #bbf7d0; }
+    .followup-item { display: flex; justify-content: space-between; padding: 6px 0;
+                     border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+    .followup-item:last-child { border-bottom: none; }
+    .followup-key { color: #64748b; font-family: monospace; }
+    .followup-time { color: #1e293b; }
 
     .empty-posts { color: #94a3b8; font-size: 14px; padding: 12px 0; }
   </style>
@@ -109,7 +118,12 @@
   <div class="card">
     <div class="card-header">
       <span class="card-title">{{ trial.name }}</span>
-      <span class="status status-{{ trial.status }}">{{ trial.status }}</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        {% if trial.purchased %}
+        <span class="purchased-badge">✓ לקוח</span>
+        {% endif %}
+        <span class="status status-{{ trial.status }}">{{ trial.status }}</span>
+      </div>
     </div>
 
     <div class="fields">
@@ -165,6 +179,19 @@
   </div>
   {% endif %}
 
+  <!-- Follow-ups card -->
+  {% if trial.followups_sent %}
+  <div class="card">
+    <div class="card-title" style="margin-bottom:16px;">מיילי מעקב שנשלחו</div>
+    {% for key, ts in trial.followups_sent.items() %}
+    <div class="followup-item">
+      <span class="followup-key">{{ key }}</span>
+      <span class="followup-time">{{ ts[:16].replace("T", " ") }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   <!-- Posts card -->
   <div class="card">
     <div class="card-title" style="margin-bottom:16px;">פוסטים שנוצרו</div>
@@ -189,6 +216,13 @@
     {% if trial.status == 'new' %}
     <form method="POST" action="/admin/send-topics/{{ trial.id }}">
       <button type="submit" class="btn btn-blue">שלח נושאים עכשיו</button>
+    </form>
+    {% endif %}
+
+    {% if not trial.purchased %}
+    <form method="POST" action="/admin/purchased/{{ trial.id }}"
+          onsubmit="return confirm('לסמן את {{ trial.name }} כלקוח? מיילי המעקב יופסקו.')">
+      <button type="submit" class="btn btn-green">✓ סמן כלקוח</button>
     </form>
     {% endif %}
 
