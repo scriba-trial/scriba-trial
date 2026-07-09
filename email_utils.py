@@ -160,7 +160,7 @@ def send_followup_email(trial: dict, key: str):
         print(f"[email] unknown followup key: {key}")
 
 
-def _followup_html(name: str, body: str) -> str:
+def _followup_html(body: str) -> str:
     return f"""
 <div dir="rtl" style="font-family:'Segoe UI',Arial,sans-serif;max-width:620px;margin:auto;color:#1a1a2e;">
   <div style="background:#0f172a;padding:28px 32px 20px;border-radius:12px 12px 0 0;">
@@ -168,7 +168,6 @@ def _followup_html(name: str, body: str) -> str:
     <p style="margin:4px 0 0;font-size:13px;color:#94a3b8;">תוכן שנשמע כמוך</p>
   </div>
   <div style="background:#fff;padding:28px 32px;border:1px solid #e2e8f0;border-top:none;">
-    <p style="font-size:17px;font-weight:600;margin:0 0 16px;">היי {name},</p>
     {body}
   </div>
   <div style="background:#f1f5f9;padding:14px 32px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0;border-top:none;">
@@ -179,81 +178,148 @@ def _followup_html(name: str, body: str) -> str:
 </div>"""
 
 
+_SIG = (
+    '<p style="font-size:14px;line-height:1.8;color:#475569;margin-top:24px;'
+    'padding-top:16px;border-top:1px solid #f1f5f9;">'
+    'בברכה,<br>'
+    '<strong style="color:#1e293b;">רן &mdash; SEEDS</strong><br>'
+    '<span style="color:#94a3b8;font-style:italic;font-size:12px;">'
+    'גורמים לאנשים לבחור בך, גם כאשר אתה יקר יותר</span></p>'
+)
+
+_CTA_TOPICS = (
+    '<p style="font-size:14px;line-height:1.8;color:#475569;margin-top:14px;">'
+    'כל מה שצריך עכשיו זה להשיב למייל הראשון שקיבלת עם 3 הצעות לפוסטים. '
+    'פשוט להשיב עם מספר: 1, 2 או 3.</p>'
+)
+
+
+def _p(text: str) -> str:
+    return f'<p style="font-size:15px;line-height:1.9;color:#1e293b;margin:0 0 12px;">{text}</p>'
+
+
 # ── Non-responders (topics_sent) ──────────────────────────────────────────────
-# Sequence: ts_f1 (+2h) → ts_f2 (next day 09:00) → ts_f3 (same day 13:00)
-#           → ts_f4 (+3 days 11:00) → ts_f5 (same day 20:00)
 
 def _ts_followup_1(trial: dict):
-    # TODO: write your text (+2h after topics email)
-    name = trial["name"]
-    subject = "TODO: subject ts_f1"
-    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body ts_f1</p>"""
-    _send(trial["email"], subject, _followup_html(name, body))
+    subject = "זה לוקח 10 שניות"
+    body = (
+        _p("שלחתי לך קודם כמה נושאים לפוסטים. אני מכיר את זה, המייל נפתח, נקרא, ונדחק הצידה כי משהו אחר קפץ. "
+           "אבל מה יכול להיות דחוף יותר מלקדם את העסק? וכן כל מה שצריך עכשיו זה להשיב למייל הקודם שקיבלת "
+           "עם 3 הצעות לפוסטים. פשוט להשיב עם מספר: 1, 2 או 3. תוך זמן קצר חוזרים אליך הפוסטים כתובים, "
+           "בקול שלך, מוכנים. אז איזה מהם הכי מדבר אליך?") +
+        _SIG
+    )
+    _send(trial["email"], subject, _followup_html(body))
 
 
 def _ts_followup_2(trial: dict):
-    # TODO: write your text (next day 09:00)
     name = trial["name"]
-    subject = "TODO: subject ts_f2"
-    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body ts_f2</p>"""
-    _send(trial["email"], subject, _followup_html(name, body))
+    subject = "מה קורה ברגע שבוחרים נושא"
+    body = (
+        _p(f"בוקר טוב {name}. רוב האנשים בטוחים שכתיבת פוסט מקצועי לוקחת שעה. ולמי יש שעה? זה בדיוק העניין. "
+           "אין צורך בשעה הזאת. ברגע שבוחרים נושא, המערכת כותבת את הפוסט בקול שלך, עם הדקויות שלך, "
+           "ומחזירה אותו מוכן. בלי דף לבן. בלי להתחיל מכלום. נושא אחד, תגובה אחת, "
+           "וזה כל מה שמפריד בינך לבין הפוסט הבא שלך. אז מאיזה נושא מתחילים?") +
+        _CTA_TOPICS +
+        _SIG
+    )
+    _send(trial["email"], subject, _followup_html(body))
 
 
 def _ts_followup_3(trial: dict):
-    # TODO: write your text (same day 13:00)
-    name = trial["name"]
-    subject = "TODO: subject ts_f3"
-    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body ts_f3</p>"""
-    _send(trial["email"], subject, _followup_html(name, body))
+    subject = "לא צריך להאמין לי"
+    body = (
+        _p("כל מי שמוכר משהו אומר שהוא הכי טוב. אז לא אבקש ממך להאמין לי. בשביל זה בדיוק יש ניסיון. "
+           "בחירת נושא אחד היא כל מה שצריך כדי לראות איך נשמע פוסט שנכתב בקול שלך, "
+           "אבל מבלי שבזבזת מזמנך לשבת ולכתוב. לא משהו גנרי שיכול להתאים לכל אחד, "
+           "אלא כזה שנשמע כאילו כתבת אותו בעצמך. "
+           "אם זה לא ידבר אליך, אז הרווחת פוסט בחינם. "
+           "אבל אם זה כן ידבר אליך, ולא עשית, הפסדת פריצת דרך עצומה. אז מה בוחרים, 1, 2 או 3?") +
+        _CTA_TOPICS +
+        _SIG
+    )
+    _send(trial["email"], subject, _followup_html(body))
 
 
 def _ts_followup_4(trial: dict):
-    # TODO: write your text (+3 days 11:00)
-    name = trial["name"]
-    subject = "TODO: subject ts_f4"
-    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body ts_f4</p>"""
-    _send(trial["email"], subject, _followup_html(name, body))
+    subject = "הלקוח הבא שלך מחפש אותך עכשיו"
+    body = (
+        _p("ברגע הזה מישהו מחפש בדיוק את השירות שלך. הוא פותח פייסבוק, לינקדאין, גוגל. ורואה את מי שמדבר. "
+           "לא את הכי טוב. את מי שנמצא. כאן זה מתחיל. פוסט אחד, ואחריו עוד אחד, "
+           "וככה נבנית הנוכחות שהופכת אותך לברירה ברורה בשוק. "
+           "הנושאים לפוסטים ששלחתי לך עדיין מחכים. כל מה שצריך זה להשיב עם מספר, והפוסט הראשון כבר בדרך. "
+           "עוד כמה זמן נשאיר את הבמה למתחרים?") +
+        _CTA_TOPICS +
+        _SIG
+    )
+    _send(trial["email"], subject, _followup_html(body))
 
 
 def _ts_followup_5(trial: dict):
-    # TODO: write your text (same day 20:00 — final)
-    name = trial["name"]
-    subject = "TODO: subject ts_f5"
-    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body ts_f5</p>"""
-    _send(trial["email"], subject, _followup_html(name, body))
+    subject = "אסגור את זה?"
+    body = (
+        _p('לא אציף אותך בעוד מיילים. שלחתי לך נושאים, הצעתי לך לראות איך נראה תוכן בקול שלך, וזה עדיין פתוח. '
+           'אם גם עכשיו זה לא הזמן לקדם את העסק, הכל בסדר. אפשר פשוט להשיב "לא עכשיו" ואעצור. '
+           'אבל אם יש בך אפילו סקרנות קטנה לראות את הפוסט הראשון, כל מה שצריך זה מספר אחד בתגובה. '
+           'מה מרגיש לך נכון כרגע?') +
+        _CTA_TOPICS +
+        _SIG
+    )
+    _send(trial["email"], subject, _followup_html(body))
 
 
 # ── Completed (got post, not purchased) ───────────────────────────────────────
-# Sequence: cp_f1 (+2h) → cp_f2 (next day 08:00) → cp_f3 (day after 13:00)
-#           → cp_f4 (+3 days 08:00)
 
 def _cp_followup_1(trial: dict):
-    # TODO: write your text (+2h after post email)
-    name = trial["name"]
-    subject = "TODO: subject cp_f1"
-    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body cp_f1</p>"""
-    _send(trial["email"], subject, _followup_html(name, body))
+    subject = "אז זה נשמע כמוך?"
+    body = (
+        _p("קיבלת את הפוסטים. עכשיו השאלה האמיתית, כשקראת אותם, זה נשמע כמוך? "
+           "זאת בדיוק המטרה. לא תוכן גנרי, אלא משהו שאפשר לעמוד מאחוריו ולשלוח בדיוק כמו שהוא. "
+           "וחשוב שאדגיש משהו אחד. מה שקיבלת עכשיו זו רק טעימה. החלק האמיתי לא נגמר בזה שהפוסט מוכן. "
+           "נגיע לזה מחר. בינתיים אשמח לשמוע, איך הרגיש לך לקרוא תוכן שנשמע כמוך ונוצר בלי מאמץ מצדך?") +
+        _SIG
+    )
+    _send(trial["email"], subject, _followup_html(body))
 
 
 def _cp_followup_2(trial: dict):
-    # TODO: write your text (next day 08:00)
-    name = trial["name"]
-    subject = "TODO: subject cp_f2"
-    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body cp_f2</p>"""
-    _send(trial["email"], subject, _followup_html(name, body))
+    subject = "החלק שעדיין לא ראית"
+    body = (
+        _p("אתמול קיבלת פוסטים מוכנים. יפה. אבל עדיין נשאר עליך לעשות איתם משהו. "
+           "זה בדיוק ההבדל בין הטעימה למוצר. במוצר המלא לא נוגעים בכלום. "
+           "הפוסט נכתב, מעוצב, ועולה לפייסבוק, לינקדאין, אינסטגרם והבלוג. אוטומטית. בקול שלך. "
+           "כל מה שנשאר זה מבט אחד לפני הפרסום ואישור. פחות מ-3 דקות. "
+           "הנוכחות שלך ממשיכה להיבנות באמצע פגישה, בחופשה, או ביום הכי עמוס שלך. "
+           "כמה שווה לך להוריד את כל זה מהראש?") +
+        _SIG
+    )
+    _send(trial["email"], subject, _followup_html(body))
 
 
 def _cp_followup_3(trial: dict):
-    # TODO: write your text (day after cp_f2, 13:00)
-    name = trial["name"]
-    subject = "TODO: subject cp_f3"
-    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body cp_f3</p>"""
-    _send(trial["email"], subject, _followup_html(name, body))
+    subject = "זה אף פעם לא היה ChatGPT"
+    body = (
+        _p("אולי עולה לך המחשבה, יש לי ChatGPT, אכתוב לבד. אז שווה להיזכר מתי בפעם האחרונה באמת עשית את זה. "
+           "זה מעולם לא היה עניין של כלי. הכלי קיים מזמן. מה שחסר זה שמישהו יבנה מזה שגרה שממשיכה לרוץ גם בלעדיך. "
+           "בשבוע העמוס, בין לקוח לפגישה, שם בדיוק נופל התוכן. לא כי חסרים רעיונות, אלא כי אין מי שיוציא אותם לפועל. "
+           "זה מה ש-SCRIBA עושה. לא עוד כלי חלוד בארגז, אלא כל העומס הזה יורד מהשולחן שלך. "
+           "כמה עוד שבועות של שקט נפסיד לפני שמתחילים?") +
+        _SIG
+    )
+    _send(trial["email"], subject, _followup_html(body))
 
 
 def _cp_followup_4(trial: dict):
-    # TODO: write your text (+3 days from cp_f3, 08:00 — final)
-    name = trial["name"]
-    subject = "TODO: subject cp_f4"
-    body = f"""<p style="font-size:15px;line-height:1.8;">TODO: body cp_f4</p>"""
-    _send(trial["email"], subject, _followup_html(name, body))
+    subject = "שיחה קצרה, בלי התחייבות"
+    body = (
+        _p('אז ראית איך זה עובד. קיבלת פוסטים בקול שלך, וכבר ברור לך ההבדל בין לכתוב לבד לבין שזה פשוט קורה. '
+           'נשאר רק להתאים את זה בדיוק אליך. הנושאים שלך, הלקוחות שלך, הקצב שלך. '
+           'זה בדיוק מה שנעשה בשיחה קצרה. עשרים דקות. ואז יוצאים לדרך. '
+           '3 פעמים בשבוע התוכן שלך עולה לפייסבוק, לינקדאין, אינסטגרם והבלוג האישי שלך. '
+           '3 פעמים בשבוע מגיע אליך גם תסריט מוכן לריל/שורט. '
+           'אם זה מרגיש נכון, אפשר להשיב למייל הזה, או לכתוב לי ישירות בווטסאפ. מה יותר נוח לך? '
+           '<a href="https://wa.me/972507686280" style="color:#25D366;font-weight:600;text-decoration:none;">'
+           'https://wa.me/972507686280</a>') +
+        _SIG
+    )
+    _send(trial["email"], subject, _followup_html(body))
