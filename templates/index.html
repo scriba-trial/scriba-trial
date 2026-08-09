@@ -6,6 +6,7 @@
   <title>Scriba — ניסיון חינם</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -198,6 +199,12 @@
       <div class="field">
         <label>משהו על הקול שלך <span class="opt">(לא חובה)</span></label>
         <textarea name="voice_signal" rows="2" placeholder="לדוגמה: אני ישיר/ה, לא אוהב/ת עצות גנריות, מאמינה שפשוט > מורכב">{{ form.get('voice_signal','') }}</textarea>
+      </div>
+
+      <input type="text" name="company_website" tabindex="-1" autocomplete="off" aria-hidden="true" value="" style="position:absolute; left:-9999px; height:0; overflow:hidden;" />
+
+      <div class="field">
+        <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"></div>
       </div>
 
       <button type="submit" class="submit-btn">שלח</button>

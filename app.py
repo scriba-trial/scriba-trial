@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import os
 import threading
+import json
+import urllib.parse
+import urllib.request
 from supabase import create_client
 from dotenv import load_dotenv
 from functools import wraps
@@ -12,6 +15,9 @@ app.secret_key = os.getenv("SECRET_KEY", "scriba-admin-secret-2026")
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 CRON_KEY = os.getenv("CRON_KEY", "scriba-trial-key-2026")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "scriba-admin-2026")
+TURNSTILE_SITE_KEY = os.getenv("TURNSTILE_SITE_KEY")
+TURNSTILE_SECRET = os.getenv("TURNSTILE_SECRET")
+TURNSTILE_ERROR_MESSAGE = "האימות נכשל. יש לרענן את הדף ולנסות שוב."
 
 
 def admin_required(f):
@@ -26,7 +32,7 @@ def admin_required(f):
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "GET":
-        return render_template("index.html", error=None, form={})
+        return render_template("index.html", error=None, form={}, turnstile_site_key=TURNSTILE_SITE_KEY)
 
     name = request.form.get("name", "").strip()
     email = request.form.get("email", "").strip().lower()
@@ -39,14 +45,44 @@ def index():
                      target_client=target_client, pain_point=pain_point,
                      voice_signal=voice_signal)
 
+    honeypot = request.form.get("company_website", "").strip()
+    if honeypot:
+        print(f"honeypot triggered {email}")
+        return render_template("success.html", name=name)
+
+    token = request.form.get("cf-turnstile-response", "").strip()
+    if not TURNSTILE_SECRET or not token:
+        return render_template("index.html", error=TURNSTILE_ERROR_MESSAGE, form=form_data, turnstile_site_key=TURNSTILE_SITE_KEY)
+
+    try:
+        verify_data = urllib.parse.urlencode({
+            "secret": TURNSTILE_SECRET,
+            "response": token,
+            "remoteip": request.remote_addr or ""
+        }).encode()
+        req = urllib.request.Request(
+            "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+            data=verify_data,
+            method="POST"
+        )
+        req.add_header("Content-Type", "application/x-www-form-urlencoded")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            verification = json.loads(resp.read().decode())
+    except Exception:
+        verification = {}
+
+    if not verification.get("success"):
+        return render_template("index.html", error=TURNSTILE_ERROR_MESSAGE, form=form_data, turnstile_site_key=TURNSTILE_SITE_KEY)
+
     if not all([name, email, field, target_client, pain_point]):
-        return render_template("index.html", error="נא למלא את כל השדות החובה", form=form_data)
+        return render_template("index.html", error="נא למלא את כל השדות החובה", form=form_data, turnstile_site_key=TURNSTILE_SITE_KEY)
 
     existing = supabase.table("trials").select("id").eq("email", email).execute()
     if existing.data:
         return render_template("index.html",
                                error="המייל הזה כבר רשום. בדוק/י את תיבת הדואר שלך.",
-                               form=form_data)
+                               form=form_data,
+                               turnstile_site_key=TURNSTILE_SITE_KEY)
 
     result = supabase.table("trials").insert({
         "name": name,
