@@ -8,6 +8,7 @@ load_dotenv()
 
 GMAIL = os.getenv("GMAIL_ADDRESS", "scriba.try@gmail.com")
 APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD", "").replace(" ", "")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", GMAIL)
 
 
 def _send(to: str, subject: str, html: str):
@@ -21,8 +22,41 @@ def _send(to: str, subject: str, html: str):
         s.login(GMAIL, APP_PASSWORD)
         s.sendmail(GMAIL, to, msg.as_string())
 
+def send_admin_review_email(trial: dict, post_id: str):
+    subject = f"פוסט מוכן לבדיקה — {trial['name']}"
+    html = f"""
+<div dir="rtl" style="font-family:Arial,sans-serif;max-width:620px;margin:auto;">
+  <p>נוצר פוסט חדש לבדיקה עבור {trial['name']}.</p>
+  <p>תחום: {trial['field']}</p>
+  <p><a href="/admin/post/{post_id}">לפתיחת הפוסט לבדיקה</a></p>
+</div>
+"""
+    _send(ADMIN_EMAIL, subject, html)
 
-def send_topics_email(trial: dict, topics: str):
+
+def send_admin_completion_email(trial: dict, posts: list):
+    sections = "".join(
+        f"<h3>{post.get('topic', '')}</h3>"
+        f"<h4>Facebook</h4><p>{post.get('facebook_text', '').replace(chr(10), '<br>')}</p>"
+        f"<h4>LinkedIn</h4><p>{post.get('linkedin_text', '').replace(chr(10), '<br>')}</p>"
+        f"<h4>Blog</h4><p>{post.get('blog_text', '').replace(chr(10), '<br>')}</p>"
+        f"<h4>Reel</h4><p>{post.get('reel_script', '').replace(chr(10), '<br>')}</p>"
+        for post in posts
+    )
+    html = f"""
+<div dir="rtl" style="font-family:Arial,sans-serif;max-width:700px;margin:auto;">
+  <h2>הניסיון הושלם</h2>
+  <p>שם: {trial['name']}</p>
+  <p>מייל: {trial['email']}</p>
+  <p>טלפון: {trial.get('phone', '')}</p>
+  <p>תחום: {trial['field']}</p>
+  {sections}
+</div>
+"""
+    _send(ADMIN_EMAIL, f"הניסיון הושלם — {trial['name']}", html)
+
+
+def send_topics_email(trial: dict, topics: str, include_auto_pick=False):
     name = trial["name"]
     to = trial["email"]
     subject = "הנה 3 נושאים לפוסט שלך — Scriba"
@@ -51,6 +85,7 @@ def send_topics_email(trial: dict, topics: str):
     <p style="font-size:14px;color:#64748b;margin:0;">
       לא מרוצה/ה מהנושאים? כתוב/י "דלג" ונשלח הצעות חדשות.
     </p>
+    {"<p style='font-size:14px;color:#64748b;margin:8px 0 0;'>אפשר להשיב עם מספר, או לא לעשות דבר ו-Scriba יבחר עבורך.</p>" if include_auto_pick else ""}
   </div>
 
   <div style="background:#f1f5f9;padding:14px 32px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0;border-top:none;">

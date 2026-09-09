@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scriba Admin — Post Review</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f1f5f9; color: #1e293b; margin: 0; }
+    header { background: #0f172a; color: #fff; padding: 18px 32px; }
+    main { max-width: 900px; margin: 32px auto; padding: 0 20px; }
+    .card { background: #fff; border-radius: 10px; padding: 24px; margin-bottom: 20px; }
+    h1 { margin-top: 0; }
+    label { display: block; font-weight: 700; margin: 18px 0 6px; }
+    textarea { width: 100%; min-height: 180px; box-sizing: border-box; padding: 12px; font: inherit; direction: rtl; }
+    .actions { display: flex; gap: 12px; margin-top: 20px; }
+    button { border: 0; border-radius: 6px; color: #fff; cursor: pointer; font: inherit; padding: 12px 20px; }
+    .save { background: #64748b; }
+    .send { background: #0057ff; }
+    a { color: #0057ff; }
+  </style>
+</head>
+<body>
+  <header>SCRIBA ADMIN</header>
+  <main>
+    <div class="card">
+      <h1>פוסט לבדיקה: {{ trial.name }}</h1>
+      <p>{{ trial.field }} · {{ trial.email }}</p>
+      <a href="{{ url_for('admin_trial', trial_id=trial.id) }}">חזרה לפרטי הניסיון</a>
+    </div>
+    <form method="POST">
+      <div class="card">
+        <label for="facebook_text">Facebook</label>
+        <textarea id="facebook_text" name="facebook_text">{{ post.facebook_text }}</textarea>
+        <label for="linkedin_text">LinkedIn</label>
+        <textarea id="linkedin_text" name="linkedin_text">{{ post.linkedin_text }}</textarea>
+        <label for="blog_text">Blog</label>
+        <textarea id="blog_text" name="blog_text">{{ post.blog_text }}</textarea>
+        <label for="reel_script">Reel</label>
+        <textarea id="reel_script" name="reel_script">{{ post.reel_script }}</textarea>
+        <div class="actions">
+          <button class="save" type="submit" name="action" value="save">שמור</button>
+          <button class="send" type="submit" name="action" value="send">שלח ללקוח</button>
+        </div>
+      </div>
+    </form>
+  </main>
+</body>
+</html>

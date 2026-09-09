@@ -145,3 +145,36 @@ def suggest_topics(trial: dict) -> str:
 ללא כוכביות **, ללא קווי הפרדה ---, ללא markdown."""}]
     )
     return resp.content[0].text.strip()
+
+
+def pick_topic(trial: dict) -> str:
+    field = trial["field"]
+    target = trial["target_client"]
+    pain = trial["pain_point"]
+
+    try:
+        resp = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=120,
+            messages=[{"role": "user", "content": f"""אתה יועץ תוכן.
+
+הלקוח: {trial["name"]}, {field}.
+הקהל: {target}.
+הכאב: {pain}.
+
+בחר נושא פוסט אחד, החזק והמדויק ביותר עבור הקהל הזה. הנושא צריך ליצור חיכוך טבעי, לא להיות גנרי, ולהתאים לסגנון תוכן חכם, ספציפי ואנושי.
+
+החזר רק את שם הנושא ומשפט הסבר קצר, ללא מספור, כוכביות, קווי הפרדה או markdown."""}]
+        )
+        topic = resp.content[0].text.strip()
+        if topic:
+            return topic
+    except Exception:
+        pass
+
+    topics = suggest_topics(trial)
+    for line in topics.split("\n"):
+        line = line.strip()
+        if line.startswith("1.") or line.startswith("1 "):
+            return line[2:].strip().split(":")[0].strip()
+    return topics.strip()

@@ -8,8 +8,8 @@ check_replies_and_generate(): checks inbox for replies, generates + sends post
 import os
 import imaplib
 import email as email_lib
+from datetime import datetime, timedelta, timezone
 from email.header import decode_header
-from datetime import datetime, timezone
 from supabase import create_client
 from dotenv import load_dotenv
 
@@ -55,6 +55,144 @@ def _extract_reply_line(body: str) -> str:
         if stripped:
             return stripped
     return ""
+
+
+def _now():
+    return datetime.now(timezone.utc)
+
+
+def _parse_timestamp(value):
+    if not value:
+        return None
+    timestamp = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if timestamp.tzinfo is None:
+        timestamp = timestamp.replace(tzinfo=timezone.utc)
+    return timestamp
+
+
+def _first_topic(topics_text: str) -> str:
+    for line in topics_text.split("\n"):
+        line = line.strip()
+        if line.startswith("1.") or line.startswith("1 "):
+            return line[2:].strip().split(":")[0].strip()
+    return topics_text.strip()
+
+
+def _insert_post(trial_id: str, topic: str, post: dict):
+    return supabase.table("posts").insert({
+        "trial_id": trial_id,
+        "topic": topic,
+        "facebook_text": post["facebook_text"],
+        "linkedin_text": post["linkedin_text"],
+        "blog_text": post.get("blog_text", ""),
+        "reel_script": post.get("reel_script", ""),
+    }).execute().data[0]
+
+
+def _send_post_and_update(trial: dict, post: dict, cycle: int):
+    from email_utils import send_post_email
+
+    send_post_email(trial, post)
+    now = _now()
+    update = {
+        "status": f"cycle_{cycle}_sent",
+        "post_sent_at": now.isoformat(),
+    }
+    if cycle < 3:
+        update["next_action_at"] = (now + timedelta(days=2)).isoformat()
+    supabase.table("trials").update(update).eq("id", trial["id"]).execute()
+
+
+def start_trial(trial_id: str):
+    """Generate the first post and leave it for admin review."""
+    post_id = None
+    try:
+        from email_utils import send_admin_review_email
+        from generate import generate_post_for_trial, pick_topic
+
+        trial = supabase.table("trials").select("*").eq("id", trial_id).single().execute().data
+        if not trial:
+            return
+
+        topic = pick_topic(trial)
+        post = generate_post_for_trial(trial, topic)
+        saved_post = _insert_post(trial_id, topic, post)
+        post_id = saved_post["id"]
+
+        supabase.table("trials").update({
+            "status": "post_1_pending",
+            "cycle": 1,
+        }).eq("id", trial_id).execute()
+
+        send_admin_review_email(trial, post_id)
+    except Exception as e:
+        if post_id:
+            try:
+                supabase.table("posts").delete().eq("id", post_id).execute()
+            except Exception as cleanup_error:
+                print(f"[flow] failed to clean up post {post_id}: {cleanup_error}")
+        try:
+            supabase.table("trials").update({"status": "new"}).eq("id", trial_id).execute()
+        except Exception as reset_error:
+            print(f"[flow] failed to reset trial {trial_id}: {reset_error}")
+        print(f"[flow] start trial error for {trial_id}: {e}")
+
+
+def advance_trials():
+    """Advance due trials through the three-post trial cycle."""
+    from email_utils import send_admin_completion_email, send_post_email, send_topics_email
+    from generate import generate_post_for_trial, suggest_topics
+
+    now = _now()
+    rows = supabase.table("trials").select("*").in_("status", [
+        "post_1_pending", "cycle_1_sent", "cycle_2_sent", "topics_sent", "cycle_3_sent"
+    ]).execute().data or []
+
+    for trial in rows:
+        try:
+            status = trial.get("status")
+            if status == "post_1_pending":
+                post = supabase.table("posts").select("*").eq("trial_id", trial["id"]).order("created_at").limit(1).execute().data
+                if post and _parse_timestamp(post[0].get("created_at")) and now - _parse_timestamp(post[0]["created_at"]) >= timedelta(hours=12):
+                    _send_post_and_update(trial, post[0], 1)
+                continue
+
+            next_action_at = _parse_timestamp(trial.get("next_action_at"))
+            if status in ("cycle_1_sent", "cycle_2_sent") and next_action_at and next_action_at <= now:
+                topics_text = suggest_topics(trial)
+                send_topics_email(trial, topics_text, include_auto_pick=True)
+                topics = {}
+                for line in topics_text.split("\n"):
+                    line = line.strip()
+                    for number in range(1, 4):
+                        if line.startswith(f"{number}.") or line.startswith(f"{number} "):
+                            topics[str(number)] = line[2:].strip().split(":")[0].strip()
+                            break
+                cycle = int(trial.get("cycle") or 1) + 1
+                supabase.table("trials").update({
+                    "status": "topics_sent",
+                    "cycle": cycle,
+                    "topics_json": topics,
+                    "topics_sent_at": now.isoformat(),
+                }).eq("id", trial["id"]).execute()
+                continue
+
+            if status == "topics_sent" and _parse_timestamp(trial.get("topics_sent_at")) and now - _parse_timestamp(trial["topics_sent_at"]) >= timedelta(hours=24):
+                cycle = int(trial.get("cycle") or 1)
+                topic = (trial.get("topics_json") or {}).get("1")
+                if not topic:
+                    topic = _first_topic(suggest_topics(trial))
+                post = generate_post_for_trial(trial, topic)
+                _insert_post(trial["id"], topic, post)
+                _send_post_and_update(trial, post, cycle)
+                continue
+
+            if status == "cycle_3_sent" and _parse_timestamp(trial.get("post_sent_at")) and now - _parse_timestamp(trial["post_sent_at"]) >= timedelta(days=2):
+                posts = supabase.table("posts").select("*").eq("trial_id", trial["id"]).order("created_at").execute().data or []
+                supabase.table("trials").update({"status": "trial_complete"}).eq("id", trial["id"]).execute()
+                send_admin_completion_email(trial, posts)
+        except Exception as e:
+            print(f"[flow] advance error for {trial.get('email')}: {e}")
 
 
 # ── main functions ─────────────────────────────────────────────────────────────
@@ -191,9 +329,11 @@ def check_replies_and_generate():
             }).execute()
 
             supabase.table("trials").update({
-                "status": "completed",
+                "status": f"cycle_{int(trial.get('cycle') or 1)}_sent",
                 "chosen_topic": topic,
                 "post_sent_at": datetime.now(timezone.utc).isoformat(),
+                **({"next_action_at": (_now() + timedelta(days=2)).isoformat()}
+                   if int(trial.get("cycle") or 1) < 3 else {}),
             }).eq("id", trial["id"]).execute()
 
             print(f"[flow] post generated and sent to {sender}")

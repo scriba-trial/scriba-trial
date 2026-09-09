@@ -4,6 +4,7 @@ import threading
 import json
 import urllib.parse
 import urllib.request
+from datetime import datetime, timedelta, timezone
 from supabase import create_client
 from dotenv import load_dotenv
 from flask_cors import CORS
@@ -40,10 +41,11 @@ def process_signup(data):
     target_client = data.get("target_client", "").strip()
     pain_point = data.get("pain_point", "").strip()
     voice_signal = data.get("voice_signal", "").strip()
+    phone = data.get("phone", "").strip()
 
     form_data = dict(name=name, email=email, field=field,
                      target_client=target_client, pain_point=pain_point,
-                     voice_signal=voice_signal)
+                     voice_signal=voice_signal, phone=phone)
 
     honeypot = data.get("company_website", "").strip()
     if honeypot:
@@ -88,19 +90,20 @@ def process_signup(data):
         "target_client": target_client,
         "pain_point": pain_point,
         "voice_signal": voice_signal,
+        "phone": phone,
         "status": "new",
     }).execute()
 
     trial_id = result.data[0]["id"] if result.data else None
 
     if trial_id:
-        def send_topics():
+        def start():
             try:
-                from trial_flow import process_single_trial
-                process_single_trial(trial_id)
+                from trial_flow import start_trial
+                start_trial(trial_id)
             except Exception as e:
-                print(f"[signup] send topics error: {e}")
-        threading.Thread(target=send_topics, daemon=True).start()
+                print(f"[signup] start trial error: {e}")
+        threading.Thread(target=start, daemon=True).start()
 
     return {"status": "success", "name": name}
 
@@ -129,17 +132,17 @@ def api_signup():
     return jsonify({"ok": True})
 
 
-@app.route("/cron/send-topics", methods=["POST"])
-def cron_send_topics():
+@app.route("/cron/advance-trials", methods=["POST"])
+def cron_advance_trials():
     if request.headers.get("X-Cron-Key", "") != CRON_KEY:
         return jsonify({"error": "unauthorized"}), 401
 
     def run():
         try:
-            from trial_flow import process_new_trials
-            process_new_trials()
+            from trial_flow import advance_trials
+            advance_trials()
         except Exception as e:
-            print(f"[cron/send-topics] error: {e}")
+            print(f"[cron/advance-trials] error: {e}")
 
     threading.Thread(target=run, daemon=True).start()
     return jsonify({"status": "started"})
@@ -211,18 +214,39 @@ def admin_trial(trial_id):
     return render_template("admin_trial.html", trial=trial, posts=posts)
 
 
-@app.route("/admin/send-topics/<trial_id>", methods=["POST"])
+@app.route("/admin/post/<post_id>", methods=["GET", "POST"])
 @admin_required
-def admin_send_topics(trial_id):
-    def run():
-        try:
-            from trial_flow import process_single_trial
-            process_single_trial(trial_id)
-        except Exception as e:
-            print(f"[admin/send-topics] error: {e}")
+def admin_post(post_id):
+    post = supabase.table("posts").select("*").eq("id", post_id).single().execute().data
+    if not post:
+        return redirect(url_for("admin_dashboard"))
 
-    threading.Thread(target=run, daemon=True).start()
-    return redirect(url_for("admin_trial", trial_id=trial_id))
+    trial = supabase.table("trials").select("*").eq("id", post["trial_id"]).single().execute().data
+    if request.method == "POST":
+        supabase.table("posts").update({
+            "facebook_text": request.form.get("facebook_text", ""),
+            "linkedin_text": request.form.get("linkedin_text", ""),
+            "blog_text": request.form.get("blog_text", ""),
+            "reel_script": request.form.get("reel_script", ""),
+        }).eq("id", post_id).execute()
+        if request.form.get("action") == "send":
+            from email_utils import send_post_email
+            post.update({
+                "facebook_text": request.form.get("facebook_text", ""),
+                "linkedin_text": request.form.get("linkedin_text", ""),
+                "blog_text": request.form.get("blog_text", ""),
+                "reel_script": request.form.get("reel_script", ""),
+            })
+            send_post_email(trial, post)
+            now = datetime.now(timezone.utc).isoformat()
+            supabase.table("trials").update({
+                "status": "cycle_1_sent",
+                "post_sent_at": now,
+                "next_action_at": (datetime.now(timezone.utc) + timedelta(days=2)).isoformat(),
+            }).eq("id", trial["id"]).execute()
+        return redirect(url_for("admin_post", post_id=post_id))
+
+    return render_template("admin_post.html", post=post, trial=trial)
 
 
 @app.route("/admin/purchased/<trial_id>", methods=["POST"])

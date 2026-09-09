@@ -63,11 +63,15 @@ def send_followups():
 
     now = _now_il()
 
+    cycle_statuses = {
+        "post_1_pending", "cycle_1_sent", "cycle_2_sent",
+        "topics_sent", "cycle_3_sent", "trial_complete",
+    }
     all_topics_sent = supabase.table("trials").select("*").eq("status", "topics_sent").execute().data or []
     all_completed = supabase.table("trials").select("*").eq("status", "completed").execute().data or []
 
-    topics_sent = [t for t in all_topics_sent if not t.get("purchased")]
-    completed = [t for t in all_completed if not t.get("purchased")]
+    topics_sent = [t for t in all_topics_sent if t.get("status") not in cycle_statuses and not t.get("purchased")]
+    completed = [t for t in all_completed if t.get("status") not in cycle_statuses and not t.get("purchased")]
 
     print(f"[followups] {len(topics_sent)} non-responders, {len(completed)} completed")
 

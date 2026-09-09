@@ -180,6 +180,11 @@
       </div>
 
       <div class="field">
+        <label>טלפון <span class="opt">(לא חובה)</span></label>
+        <input type="tel" name="phone" value="{{ form.get('phone','') }}" placeholder="050-1234567">
+      </div>
+
+      <div class="field">
         <label>במה עוסק/ת? <span class="req">*</span></label>
         <input type="text" name="field" value="{{ form.get('field','') }}" placeholder="מקצוע או נישה עסקית" required>
       </div>
