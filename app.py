@@ -6,11 +6,15 @@ import urllib.parse
 import urllib.request
 from supabase import create_client
 from dotenv import load_dotenv
+from flask_cors import CORS
 from functools import wraps
 
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app, resources={r"/api/*": {
+    "origins": ["https://scriba.biz", "https://www.scriba.biz"]
+}})
 app.secret_key = os.getenv("SECRET_KEY", "scriba-admin-secret-2026")
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 CRON_KEY = os.getenv("CRON_KEY", "scriba-trial-key-2026")
@@ -29,30 +33,26 @@ def admin_required(f):
     return decorated
 
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    if request.method == "GET":
-        return render_template("index.html", error=None, form={}, turnstile_site_key=TURNSTILE_SITE_KEY)
-
-    name = request.form.get("name", "").strip()
-    email = request.form.get("email", "").strip().lower()
-    field = request.form.get("field", "").strip()
-    target_client = request.form.get("target_client", "").strip()
-    pain_point = request.form.get("pain_point", "").strip()
-    voice_signal = request.form.get("voice_signal", "").strip()
+def process_signup(data):
+    name = data.get("name", "").strip()
+    email = data.get("email", "").strip().lower()
+    field = data.get("field", "").strip()
+    target_client = data.get("target_client", "").strip()
+    pain_point = data.get("pain_point", "").strip()
+    voice_signal = data.get("voice_signal", "").strip()
 
     form_data = dict(name=name, email=email, field=field,
                      target_client=target_client, pain_point=pain_point,
                      voice_signal=voice_signal)
 
-    honeypot = request.form.get("company_website", "").strip()
+    honeypot = data.get("company_website", "").strip()
     if honeypot:
         print(f"honeypot triggered {email}")
-        return render_template("success.html", name=name)
+        return {"status": "honeypot", "name": name, "form": form_data}
 
-    token = request.form.get("cf-turnstile-response", "").strip()
+    token = data.get("cf-turnstile-response", "").strip()
     if not TURNSTILE_SECRET or not token:
-        return render_template("index.html", error=TURNSTILE_ERROR_MESSAGE, form=form_data, turnstile_site_key=TURNSTILE_SITE_KEY)
+        return {"status": "error", "error": TURNSTILE_ERROR_MESSAGE, "form": form_data}
 
     try:
         verify_data = urllib.parse.urlencode({
@@ -72,17 +72,14 @@ def index():
         verification = {}
 
     if not verification.get("success"):
-        return render_template("index.html", error=TURNSTILE_ERROR_MESSAGE, form=form_data, turnstile_site_key=TURNSTILE_SITE_KEY)
+        return {"status": "error", "error": TURNSTILE_ERROR_MESSAGE, "form": form_data}
 
     if not all([name, email, field, target_client, pain_point]):
-        return render_template("index.html", error="נא למלא את כל השדות החובה", form=form_data, turnstile_site_key=TURNSTILE_SITE_KEY)
+        return {"status": "error", "error": "נא למלא את כל השדות החובה", "form": form_data}
 
     existing = supabase.table("trials").select("id").eq("email", email).execute()
     if existing.data:
-        return render_template("index.html",
-                               error="המייל הזה כבר רשום. בדוק/י את תיבת הדואר שלך.",
-                               form=form_data,
-                               turnstile_site_key=TURNSTILE_SITE_KEY)
+        return {"status": "error", "error": "המייל הזה כבר רשום. בדוק/י את תיבת הדואר שלך.", "form": form_data}
 
     result = supabase.table("trials").insert({
         "name": name,
@@ -105,7 +102,31 @@ def index():
                 print(f"[signup] send topics error: {e}")
         threading.Thread(target=send_topics, daemon=True).start()
 
-    return render_template("success.html", name=name)
+    return {"status": "success", "name": name}
+
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+    if request.method == "GET":
+        return render_template("index.html", error=None, form={}, turnstile_site_key=TURNSTILE_SITE_KEY)
+
+    outcome = process_signup(request.form)
+    if outcome["status"] == "honeypot":
+        return render_template("success.html", name=outcome["name"])
+    if outcome["status"] == "error":
+        return render_template("index.html", error=outcome["error"], form=outcome["form"], turnstile_site_key=TURNSTILE_SITE_KEY)
+    return render_template("success.html", name=outcome["name"])
+
+
+@app.route("/api/signup", methods=["POST"])
+def api_signup():
+    data = request.get_json(silent=True) if request.is_json else request.form
+    outcome = process_signup(data or {})
+    if outcome["status"] == "honeypot":
+        return jsonify({"ok": True})
+    if outcome["status"] == "error":
+        return jsonify({"ok": False, "error": outcome["error"]}), 400
+    return jsonify({"ok": True})
 
 
 @app.route("/cron/send-topics", methods=["POST"])
