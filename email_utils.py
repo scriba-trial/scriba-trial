@@ -75,7 +75,7 @@ def send_topics_email(trial: dict, topics: str, include_auto_pick=False):
     <p style="font-size:14px;color:#64748b;margin:0;">
       לא מרוצה/ה מהנושאים? כתוב/י "דלג" ונשלח הצעות חדשות.
     </p>
-    {"<p style='font-size:14px;color:#64748b;margin:8px 0 0;'>אפשר להשיב עם מספר, או לא לעשות דבר ו-Scriba יבחר עבורך.</p>" if include_auto_pick else ""}
+    {"<p style='font-size:14px;color:#64748b;margin:8px 0 0;'>אפשר להשיב עם מספר, או לא לעשות דבר ו-Scriba תבחר עבורך.</p>" if include_auto_pick else ""}
   </div>
 
   <div style="background:#f1f5f9;padding:14px 32px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0;border-top:none;">
@@ -144,7 +144,7 @@ def send_post_email(trial: dict, post: dict):
     <div style="background:#f8fafc;border-radius:8px;padding:18px 20px;border:1px solid #e2e8f0;">
       <p style="margin:0 0 8px;font-size:14px;font-weight:600;color:#1e293b;">רוצה עוד?</p>
       <p style="margin:0;font-size:14px;line-height:1.7;color:#475569;">
-        Scriba יוצר פוסט שבועי שנשמע כמוך, מעלה מעורבות ובונה סמכות בתחום שלך.<br>
+        Scriba יוצרת פוסט שבועי שנשמע כמוך, מעלה מעורבות ובונה סמכות בתחום שלך.<br>
         <a href="https://scriba.biz" style="color:#0f172a;font-weight:600;">scriba.biz</a>
       </p>
     </div>
