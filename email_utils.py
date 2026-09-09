@@ -94,6 +94,12 @@ def send_post_email(trial: dict, post: dict):
     name = trial["name"]
     to = trial["email"]
     subject = "הפוסט שלך מוכן — Scriba"
+    cycle = int(trial.get("cycle") or 1)
+    trial_message = (
+        "זה הפוסט השלישי והאחרון בניסיון. אם בא לך שזה ימשיך, אני אצור איתך קשר בקרוב."
+        if cycle == 3
+        else "עוד פוסט מגיע אליך בעוד יומיים. סך הכל 3 פוסטים השבוע."
+    )
 
     fb = post["facebook_text"].replace("\n", "<br>")
     li = post["linkedin_text"].replace("\n", "<br>")
@@ -140,6 +146,8 @@ def send_post_email(trial: dict, post: dict):
       <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#7c3aed;letter-spacing:1px;">תסריט לריל</p>
       <p style="margin:0;font-size:15px;line-height:1.8;color:#1e293b;">{reel}</p>
     </div>
+
+    <p style="font-size:14px;line-height:1.7;color:#475569;margin:0 0 16px;">{trial_message}</p>
 
     <div style="background:#f8fafc;border-radius:8px;padding:18px 20px;border:1px solid #e2e8f0;">
       <p style="margin:0 0 8px;font-size:14px;font-weight:600;color:#1e293b;">רוצה עוד?</p>
