@@ -1,5 +1,6 @@
 import anthropic
 import os
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -14,10 +15,12 @@ def build_system_prompt(trial: dict) -> str:
     pain = trial["pain_point"]
     voice = trial.get("voice_signal", "")
     voice_line = f"\nהקול שלך: {voice}" if voice else ""
+    current_date = datetime.now(timezone.utc).date().isoformat()
 
     return f"""אתה כותב תוכן שיווקי עבור {name}, {field}.
 הקהל: {target}.
 הכאב המרכזי של הקהל: {pain}.{voice_line}
+התאריך היום הוא {current_date}. אל תזכיר שנים או תאריכים שאינם נכונים ביחס לתאריך הזה.
 
 כללי עיצוב מוחלטים:
 - אסור קווי הפרדה --- או קווים מפרידים מכל סוג
