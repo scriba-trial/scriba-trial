@@ -1,8 +1,6 @@
 import os
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from dotenv import load_dotenv
+import graph_mail
 
 load_dotenv()
 
@@ -12,15 +10,7 @@ ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", GMAIL)
 
 
 def _send(to: str, subject: str, html: str):
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = GMAIL
-    msg["To"] = to
-    msg["Reply-To"] = GMAIL
-    msg.attach(MIMEText(html, "html", "utf-8"))
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
-        s.login(GMAIL, APP_PASSWORD)
-        s.sendmail(GMAIL, to, msg.as_string())
+    graph_mail.send_mail(to, subject, html)
 
 def send_admin_review_email(trial: dict, post_id: str):
     subject = f"פוסט מוכן לבדיקה — {trial['name']}"

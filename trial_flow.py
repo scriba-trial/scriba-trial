@@ -6,12 +6,11 @@ check_replies_and_generate(): checks inbox for replies, generates + sends post
 """
 
 import os
-import imaplib
-import email as email_lib
+from html.parser import HTMLParser
 from datetime import datetime, timedelta, timezone
-from email.header import decode_header
 from supabase import create_client
 from dotenv import load_dotenv
+import graph_mail
 
 load_dotenv()
 
@@ -22,29 +21,19 @@ APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD", "").replace(" ", "")
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
-def _decode_header_str(raw: str) -> str:
-    parts = decode_header(raw or "")
-    result = ""
-    for part, charset in parts:
-        if isinstance(part, bytes):
-            result += part.decode(charset or "utf-8", errors="ignore")
-        else:
-            result += part
-    return result
+class _HTMLTextParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.parts = []
+
+    def handle_data(self, data):
+        self.parts.append(data)
 
 
-def _get_body(msg) -> str:
-    if msg.is_multipart():
-        for part in msg.walk():
-            if part.get_content_type() == "text/plain":
-                payload = part.get_payload(decode=True)
-                if payload:
-                    return payload.decode("utf-8", errors="ignore")
-    else:
-        payload = msg.get_payload(decode=True)
-        if payload:
-            return payload.decode("utf-8", errors="ignore")
-    return ""
+def _html_to_text(value: str) -> str:
+    parser = _HTMLTextParser()
+    parser.feed(value or "")
+    return "".join(parser.parts)
 
 
 def _extract_reply_line(body: str) -> str:
@@ -245,28 +234,15 @@ def check_replies_and_generate():
     pending_by_email = {t["email"]: t for t in pending.data}
     print(f"[flow] checking replies for {len(pending_by_email)} trials")
 
-    mail = imaplib.IMAP4_SSL("imap.gmail.com")
-    mail.login(GMAIL, APP_PASSWORD)
-    mail.select("inbox")
-
-    since = datetime.now().strftime("%d-%b-%Y")
-    _, messages = mail.search(None, f"SINCE {since}")
-    email_ids = messages[0].split()
-    print(f"[flow] {len(email_ids)} emails in inbox today")
+    since = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).isoformat().replace("+00:00", "Z")
+    messages = graph_mail.list_recent_messages(since)
+    print(f"[flow] {len(messages)} emails in inbox today")
 
     processed = set()
 
-    for eid in reversed(email_ids):
-        _, msg_data = mail.fetch(eid, "(BODY.PEEK[])")
-        msg = email_lib.message_from_bytes(msg_data[0][1])
-
-        subject = _decode_header_str(msg.get("Subject", ""))
-        sender_raw = msg.get("From", "")
-        sender = sender_raw.lower()
-
-        # Extract plain email from "Name <email>" format
-        if "<" in sender:
-            sender = sender.split("<")[1].rstrip(">").strip()
+    for message in messages:
+        subject = message.get("subject", "")
+        sender = message.get("from", {}).get("emailAddress", {}).get("address", "").lower()
 
         if sender not in pending_by_email:
             continue
@@ -278,7 +254,7 @@ def check_replies_and_generate():
         if not (is_reply and is_topic_email):
             continue
 
-        body = _get_body(msg)
+        body = _html_to_text(message.get("body", {}).get("content", ""))
         reply = _extract_reply_line(body)
         print(f"[flow] reply from {sender}: {repr(reply)}")
 
@@ -342,7 +318,6 @@ def check_replies_and_generate():
 
         processed.add(sender)
 
-    mail.logout()
     print(f"[flow] done. processed: {len(processed)}")
 
 
