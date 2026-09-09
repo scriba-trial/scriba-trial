@@ -18,7 +18,7 @@ def send_admin_review_email(trial: dict, post_id: str):
 <div dir="rtl" style="font-family:Arial,sans-serif;max-width:620px;margin:auto;">
   <p>נוצר פוסט חדש לבדיקה עבור {trial['name']}.</p>
   <p>תחום: {trial['field']}</p>
-  <p><a href="/admin/post/{post_id}">לפתיחת הפוסט לבדיקה</a></p>
+  <p><a href="https://scriba-trial.onrender.com/admin/post/{post_id}">לפתיחת הפוסט לבדיקה</a></p>
 </div>
 """
     _send(ADMIN_EMAIL, subject, html)
